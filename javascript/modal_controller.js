@@ -118,9 +118,8 @@ export default class extends Controller {
 
   // The element that carries UTMR's lifecycle events (modal:closing,
   // modal:closed). Normally the enclosing <turbo-frame>, but a modal can be
-  // rendered without one (for example cloned from a <template>), so fall back
-  // to the controller's own element. That keeps the close flow working and
-  // lets listeners such as hideModalWithPromise resolve in both cases.
+  // rendered without one (e.g. cloned from a <template>), so fall back to
+  // the controller's own element.
   #eventTarget() {
     return this.turboFrame || this.element;
   }
@@ -278,14 +277,15 @@ export default class extends Controller {
       this.#cancelCloseCleanup();
       window.removeEventListener('popstate', this.popstateHandler);
       const frame = this.turboFrame;
+      const target = this.#eventTarget();
       try { dialog.close(); } catch (_) {}
-      try { frame.removeAttribute("src"); } catch (_) {}
+      frame?.removeAttribute("src");
       try { dialog.remove(); } catch (_) {}
       delete dialog.dataset.utmrHistoryAdvanced;
       delete dialog.dataset.utmrSkipHistoryBack;
       this.#releaseScrollbarCompensation();
       this.#resetHistoryAdvanced();
-      try { this.#eventTarget().dispatchEvent(new Event('modal:closed', { cancelable: false })); } catch (_) {}
+      try { target.dispatchEvent(new Event('modal:closed', { cancelable: false })); } catch (_) {}
 
       // Go back in history AFTER the dialog is removed and animation is done.
       // This triggers Turbo's popstate navigation to restore the previous page.
@@ -310,11 +310,12 @@ export default class extends Controller {
     this.#cancelCloseCleanup();
     const dialog = this.containerTarget;
     const frame = this.turboFrame;
+    const target = this.#eventTarget();
     try { dialog.close(); } catch (_) {}
-    try { frame.removeAttribute("src"); } catch (_) {}
+    frame?.removeAttribute("src");
     try { dialog.remove(); } catch (_) {}
     this.#releaseScrollbarCompensation();
-    try { this.#eventTarget().dispatchEvent(new Event('modal:closed', { cancelable: false })); } catch (_) {}
+    try { target.dispatchEvent(new Event('modal:closed', { cancelable: false })); } catch (_) {}
   }
 
   // Remove any stale dialogs of the same kind left over from a previous failed
